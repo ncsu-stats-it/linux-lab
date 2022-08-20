@@ -1,0 +1,15 @@
+#!/bin/bash
+LIST=`cat /etc/hosts | grep lab | awk '{print $2}'`
+echo " "
+echo "Pinging Lab... from /etc/hosts" 
+echo "================================== "
+for X in $LIST; do
+        echo -n [$X]....
+        # sleep 2
+	DOWN=`ping -c 1 -W 1 $X | grep 100 | grep loss`
+        if [ "$DOWN" ]; then
+	    echo -e '\033[1mOFF\033[0m'
+        else
+            echo 'on' 
+	fi
+done

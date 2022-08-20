@@ -1,0 +1,7 @@
+#!/bin/bash
+cd /usr/local/WOL
+if  [ $# -lt 1 ]; then
+	./wol.py list
+else
+	./wol.py $@
+fi 

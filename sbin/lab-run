@@ -1,0 +1,17 @@
+#!/bin/bash
+# Check if root
+if ! [ $(id -u) = 0 ]; then
+         echo "ERROR: You must be root"
+        exit 0
+fi
+SHORTHOST=`hostname | cut -f1 -d.`
+LIST=`cat /etc/hosts | grep lab`| grep -v $SHORTHOST | awk '{print $2}'`
+echo " "
+echo "Updating Lab with Changes..." 
+for X in $LIST; do
+        echo " "
+        echo -n [ $X ]....
+        echo $@
+        ssh root@$X $@
+        sleep 1
+done

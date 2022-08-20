@@ -1,0 +1,42 @@
+#!/bin/bash
+# Check if root
+if ! [ $(id -u) = 0 ]; then
+         echo "ERROR: You must be root"
+        exit 0
+fi
+
+LIST=`cat /etc/hosts | grep lab | awk '{print $2}'`
+echo " "
+echo "Updating Lab with Changes..." 
+for X in $LIST; do
+        echo " "
+        echo [ $X ]
+        echo " "
+        sleep 2
+        # echo [Uptime]
+        # ssh root@$X uptime
+        echo [syncing.... Matlab]
+        rsync -e ssh -rltvzpog /usr/local/matlab root@$X:/usr/local
+        echo [syncing.... idv]
+        rsync -e ssh -rltvzpog /usr/local/IDV_6.1 root@$X:/usr/local
+        echo [syncing.... gempak]
+        rsync -e ssh -rltvzpog --delete /usr/local/gempak root@$X:/usr/local
+        echo [syncing.... anaconda3]
+        rsync -e ssh -rltvzpog --delete /opt/anaconda3 root@$X:/opt
+        echo [syncing.... /etc/profile.d]
+        rsync -e ssh -rltvzpog /etc/profile.d root@$X:/etc
+        echo [syncing.... /etc/bashrc]
+        rsync -e ssh -rltvzpog /etc/bashrc root@$X:/etc
+        echo [syncing.... /etc/alternatives]
+        rsync -e ssh -rltvzpog /etc/alternatives root@$X:/etc
+        echo [syncing.... WOL]
+        rsync -e ssh -rltvzpog /usr/local/WOL root@$X:/usr/local
+        echo [syncing.... /usr/local/bin]
+        rsync -e ssh -rltvzpog --delete /usr/local/bin root@$X:/usr/local
+        echo [syncing.... /usr/local/sbin]
+        rsync -e ssh -rltvzpog --delete /usr/local/sbin root@$X:/usr/local
+        echo [syncing.... /etc/hosts]
+        rsync -e ssh -rltvzpog /etc/hosts root@$X:/etc
+        # echo [syncing.... /root/.ssh]
+        # rsync -e ssh -rltvzpog /root/.ssh root@$X:
+done
