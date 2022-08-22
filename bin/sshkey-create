@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ -z "${SUDO_USER}" ]; then
+	if ! [ -e ~/.ssh/id_rsa.pub ]; then
+		/usr/bin/ssh-keygen -q -b 4096 -t rsa -N '' -f ~/.ssh/id_rsa 
+		cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+		cp /etc/skel/.ssh/known_hosts ~/.ssh/
+		mkdir ~/R-Library
+	fi 
+else
+	exit 0;
+fi
