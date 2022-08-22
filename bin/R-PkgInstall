@@ -1,0 +1,25 @@
+#!/bin/sh
+##
+if [ $# -lt 1 ]; then
+        echo "Usage: $0 {RPackage}"
+        exit 0
+fi
+
+CWD=`pwd`
+if [ -f $1 ]
+then
+   R -e "install.packages('$CWD/$1',dependencies=TRUE,repos=NULL,type=\"source\",lib='/usr/local/lib/R/site-library/')"
+else
+   for a in ${@}
+   do
+      if [ -d "/usr/lib/R/library/$a" ]; then
+         echo "R Package: $a is installed."
+      else
+         if [ -d "/usr/local/lib/R/site-library/$a" ]; then
+            echo "R Package: $a is installed."
+         else
+            R -e "install.packages('$a',dependencies=TRUE,repos='https://cran.rstudio.com/',lib='/usr/local/lib/R/site-library/')"
+         fi
+      fi
+   done
+fi

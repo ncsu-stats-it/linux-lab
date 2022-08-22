@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+	echo "Usage: $0 <isofilename>"
+	exit 0
+fi
+# mkisofs -r -J -l -allow-lowercase -allow-multidot -joliet-long -o /tmp/$1.iso /dev/scd0
+/bin/umount /dev/scd0
+/usr/bin/readcd -dev=/dev/scd0 -f=/tmp/$1.iso
+/usr/bin/eject cdrom

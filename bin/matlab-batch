@@ -1,0 +1,12 @@
+#!/bin/sh
+MATLABBIN=/usr/local/MATLAB/R2019b/bin/matlab
+case $#
+in
+1)      OUT=`echo $1 | cut -f1 -d.`.out
+        $MATLABBIN -nodisplay -nosplash < $1 > $OUT
+        ;;
+2)      $MATLABBIN -nodisplay -nosplash < $1 > $2
+        ;;
+*)      echo "$0: <inputfile> <outputfile>"
+        ;;
+esac

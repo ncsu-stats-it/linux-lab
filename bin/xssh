@@ -1,0 +1,52 @@
+#!/bin/sh
+                                                                                
+## Makes ssh connection in another xterm window.
+# WINDOW="gnome-terminal"
+WINDOW="gnome"
+# WINDOW="konsole"
+# WINDOW="xterm"
+if [ $# -lt 1 ]
+then
+        echo "Usage: $0 <host>"
+        exit 0
+fi
+OS=`uname`
+
+if [ $# -eq 2 ]
+then
+	PORT=$2                                                              
+else
+	PORT=22
+fi
+CHECK=`echo $1 | grep @`
+if [ "$CHECK" = "" ]
+  then
+	BGCOLOR="lightyellow"
+	RUSER=`echo $USER`
+	RHOST=$1
+  else
+	BGCOLOR="lightblue"
+	RUSER=`echo $1 | awk -F"@" '{print $1}'`
+	RHOST=`echo $1 | awk -F"@" '{print $2}'`
+fi
+# UP=`ping $RHOST -q -c1 -w4 | grep "100% packet loss"`
+case $WINDOW in
+	gnome-terminal|gnome)
+		TERMINAL="/usr/bin/gnome-terminal -t $RUSER@$RHOST -x ssh $RUSER@$RHOST -p $PORT "
+	;;
+	konsole|kde)
+		TERMINAL="/usr/bin/konsole -T $RUSER@$RHOST -e ssh $RUSER@$RHOST -p $PORT"
+	;;
+	xterm|*)
+		TERMINAL="xterm -T $RHOST -bg $BGCOLOR -fg black -T $RUSER@$RHOST -n $RUSER@$RHOST -sl 3000 -e ssh $RUSER@$RHOST -p $PORT"
+	;;
+esac
+
+		
+if [ "$UP" = "" ]
+  then
+        $TERMINAL
+  else
+        echo "$1 [down]"
+fi
+exit 0

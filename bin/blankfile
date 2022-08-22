@@ -1,0 +1,35 @@
+#!/bin/sh
+# Create a Large File of Designated Size
+if [ $# -lt 2 ]
+then
+	echo "Usage: $0 size {KB|MB|GB}"
+	exit 0
+fi
+GB="1048576"
+case $2 in
+	kb|KB|Kb|kB)
+		MULT="1"
+		TYPE="KB"
+		;;
+	mb|MB|Mb|mB)
+		MULT="1024"
+		TYPE="MB"
+		;;
+	gb|GB|Gb|gB)
+		MULT="1048576"
+		TYPE="GB"
+		;;
+	#tb|TB|Tb|tB)
+	#	MULT="1073741824"
+	#	TYPE="TB"
+	#	;;
+	*)
+		echo "ERROR: $0 size {KB|MB|GB}"
+		exit 1
+	;;
+
+		
+esac
+#echo $SIZE
+SIZE=$(($1*$MULT))
+dd if=/dev/zero of=$1"$TYPE" bs=$SIZE"000" count=1

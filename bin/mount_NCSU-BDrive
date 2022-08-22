@@ -1,0 +1,23 @@
+#!/bin/sh
+# If special characters exist in the password
+# then you must use the HEX value for the character
+# Example: p@ss would be p%40ss
+UNITYID=$USER
+# UNITYPASS="p%40ss"
+DOMAIN="WOLFTECH"
+DIRECTORY="/Media/B-Drive"
+if [ -d "$DIRECTORY" ]; then
+        if [ -d "$DIRECTORY/Documents" ]; then
+              echo "$DIRECTORY already mounted"
+              exit 0;
+        fi
+        echo "mounting $DIRECTORY"
+        # mount -t cifs -o username=$UNITYID,userpass=$UNITYPASS,domain=$DOMAIN //$UNITYID.file.ncsu.edu/ncsu/$UNITYID $DIRECTORY
+        mount -t cifs -o username=$UNITYID,domain=$DOMAIN //$UNITYID.file.ncsu.edu/ncsu/$UNITYID $DIRECTORY
+else
+        sudo mkdir $DIRECTORY
+        sudo chown $UNITYID $DIRECTORY
+        echo "mounting $DIRECTORY"
+        # mount -t cifs -o username=$UNITYID,userpass=$UNITYPASS,domain=$DOMAIN //$UNITYID.file.ncsu.edu/ncsu/$UNITYID $DIRECTORY
+        mount -t cifs -o username=$UNITYID,domain=$DOMAIN //$UNITYID.file.ncsu.edu/ncsu/$UNITYID $DIRECTORY
+fi

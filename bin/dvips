@@ -1,0 +1,14 @@
+#!/bin/sh
+
+## Fix for NEW dvips to STOP ouput going to printer but to [name].ps
+
+APP_PATH=/usr/bin
+PARAMS=${@}
+if [ $# -eq 1 ]
+then
+        $APP_PATH/dvips $1 -t letter  -o 
+        exit 0
+else
+        $APP_PATH/dvips $PARAMS -t letter -o
+        exit 0
+fi

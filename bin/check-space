@@ -1,0 +1,8 @@
+#!/bin/bash
+for dir in */
+do
+	echo -n " [ $dir ] "
+        cd $dir
+	/usr/bin/du -sh
+	cd ..
+done

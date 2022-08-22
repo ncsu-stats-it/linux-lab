@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+# 
+## TASK:
+## Read a file of users and pass to a script to test each user.
+##
+## INPUT:
+## A file of userids.
+## A script to test each userid.
+##
+## OUTPUT:
+## Dependent on script passed.
+##
+$CWD=`pwd`;
+$INFILE=$ARGV[0];
+$SCRIPT=$ARGV[1];
+if ( $INFILE eq "" ) {
+	print "Error: readfile [infile] [script]\n";
+	exit 0;
+}
+if ( $SCRIPT eq "" ) {
+	print "Error: readfilel [infile] [script]\n";
+	exit 0;
+}
+open (infile,"$INFILE");
+while ( <infile> ) {
+	chop;
+	if ($_ ne "") {
+		system ("$SCRIPT $_");
+	}
+}
+close(infile);

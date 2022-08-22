@@ -1,0 +1,20 @@
+#!/bin/sh
+SASBIN=/usr/local/SAS/9.4/SASFoundation/9.4/bin/sas_en
+if [ $# -lt 1 ]
+then
+        echo "$0 [options] <inputfile>"
+        exit 0
+else
+        PARAMS=${@}
+        while test -n "${1}"; do
+                PROG=$1
+                shift
+        done
+        if [ -f $PROG ] || [ -f $PROG".sas" ]
+        then
+                $SASBIN $PARAMS
+        else
+                echo "error:" $PROG "not found..."
+                echo "$0 [options] <inputfile>"
+        fi
+fi

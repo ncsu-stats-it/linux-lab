@@ -1,0 +1,20 @@
+#!/bin/sh
+
+## Mount ISO image as /mnt/image.
+## User must pass name that is /tmp/[name].img
+
+if [ $# -lt 1 ]
+then
+        echo "Usage: $0 <Filename.iso>"
+        exit 0
+fi
+if [ -d /mnt/iso ]; then
+	umount /mnt/iso
+else
+	mkdir /mnt/iso
+fi
+if [ -r $1 ]; then
+	mount -t iso9660 -o ro,loop=/dev/loop0 $1 /mnt/iso
+else
+	echo "$1 NOT Found."
+fi

@@ -1,0 +1,12 @@
+RBIN=/usr/bin/R
+unset R_HOME
+case $#
+in
+1)      OUT=`echo $1 | cut -f1 -d.`.out
+        $RBIN CMD BATCH --vanilla --no-save $1 $OUT 2>&1
+        ;;
+2)      $RBIN CMD BATCH --vanilla --no-save $1 $2 2>&1
+        ;;
+*)      echo "$0: <inputfile> <outputfile>"
+        ;;
+esac

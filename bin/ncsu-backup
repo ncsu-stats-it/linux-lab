@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#=== Configuration ===
+USER=${LOGNAME}
+LOGFILE="bkup-log.txt"
+ARCHIVE="/home"
+SRVDIR="LINUX"
+SERVER="/Media/B-Drive/Documents"
+
+if [ ! $SERVER ]; then;
+	echo "ERROR: $SERVER NOT Found."
+	exit 0
+fi
+
+#=== Backin up The Files ===
+echo "Backing up files....."
+echo "===================================================================" > /tmp/${LOGFILE}
+echo "." >> /tmp/${LOGFILE}
+/bin/date +%D%t%T >> /tmp/${LOGFILE}
+echo "." >> /tmp/${LOGFILE}
+echo "Backing up $USER..." >> /tmp/${LOGFILE}
+cd $SERVER
+/usr/bin/rsync -rltvz --delete --exclude ${USER}/Downloads ${ARCHIVE}/${USER} ${SRVDIR} >> /tmp/${LOGFILE}
+echo "." >> /tmp/${LOGFILE}
+echo "===================================================================" >> /tmp/${LOGFILE}
+cd /tmp
+echo "Backing up $LOGFILE..." >> /tmp/${LOGFILE}
+

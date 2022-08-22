@@ -1,0 +1,16 @@
+#!/bin/bash
+if ! [ $(id -u) = 0 ]; then
+        echo "ERROR: You must be root"
+        exit 0
+fi
+cd /home
+for dir in */
+do
+     echo " [ $dir ] "
+     tuser=`echo $dir | cut -f1 -d/`
+     cd $dir
+     rsync -tlvz /etc/skel/.??* .
+     chown $tuser .??*  
+     cd /home
+done
+

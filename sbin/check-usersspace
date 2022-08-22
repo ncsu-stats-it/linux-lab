@@ -1,0 +1,15 @@
+#!/bin/sh
+# Check if root
+if ! [ $(id -u) = 0 ]; then 
+	echo "ERROR: You must be root"
+        exit 0
+fi
+cd /home
+DIRS=`ls -1 | grep -v lost+found | grep -v aquota`
+for a in $DIRS
+do
+	echo -n " [ $a ] "
+        cd $a
+	/usr/bin/du -sh
+	cd ..
+done

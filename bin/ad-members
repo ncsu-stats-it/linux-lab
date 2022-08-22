@@ -1,0 +1,12 @@
+#!/bin/sh
+if [ $# -lt 1 ]
+then
+        echo "Usage: $0 <WOLFTECH Group>"
+        exit 0
+fi
+tokens=`klist | grep WOLFTECH.AD.NCSU.EDU` > /dev/null 2>&1
+if [ ! -z  "$tokens" ]; then
+/usr/bin/ldapsearch -QLLL -Y GSSAPI -h wolftech.ad.ncsu.edu -b "DC=wolftech,DC=ad,DC=ncsu,DC=edu" -o ldif-wrap=no "(cn=$1)" member | grep 'member:' | awk -F '[=,]' '{print $2}' | sort
+else
+	echo "ERROR: Need to kerberos tokens. <kinit>"
+fi

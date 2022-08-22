@@ -1,0 +1,58 @@
+#!/bin/sh
+## Make sure the USB drive doesn't have spaces in NAME.
+## Change the DESC to be whatever you want.
+OS=`uname`
+DESC="NCSU"
+case $OS in
+	Linux )
+		ARCHIVE="/home"
+		DRIVE=`df -k | grep media | grep sd | awk '{print $6}'`
+	;;
+	Darwin )
+		ARCHIVE="/Users"
+		DRIVE=`df -k | grep Volumes | grep disk | awk '{print $9}'`
+	;;
+esac
+if [ ! $DRIVE ]; then 
+	echo "ERROR: No External USB Drive Found."
+	exit 0
+fi
+echo "Checking USB Drive ${DRIVE}....."
+cd ${DRIVE}
+if [ $# -lt 1 ]; then
+	ARCHIVE="/home"
+	USER=${LOGNAME}
+	DATE=`date "+%Y-%d-%m"`
+else
+	ARCHIVE=`pwd`
+	USER="$1"
+	DATE=""
+fi
+cd ${DRIVE}
+DRIVESPACE=`df -k . | awk '{print $4}'| grep -v Avail`
+cd ${ARCHIVE}/${USER}
+NEEDSPACE=`du -s . | awk '{print $1}'`
+cd ${ARCHIVE}
+if [ ${DRIVESPACE} -gt ${NEEDSPACE} ]; then
+	echo "Backing up files [${USER}]....."
+ 	echo "===================================================================" 
+ 	echo "." 
+ 	echo "." 
+ 	echo "Backing up ${USER} ..." 
+ 	cd $ARCHIVE
+ 	if ! [ -d ${DRIVE}/${DESC}/${DATE} ]; then
+ 		mkdir -p ${DRIVE}/${DESC}/${DATE}
+ 	fi
+ 	/usr/bin/rsync -rltvzpog --delete ${USER} ${DRIVE}/${DESC}/${DATE} 
+ 	echo "===================================================================" 
+else
+        cd ${DRIVE}
+        DRIVESPACE=`df -k . | awk '{print $4}'| grep -v Avail`
+        cd ${ARCHIVE}/${USER}
+        NEEDSPACE=`du -s . | awk '{print $1}'`
+	echo "ERROR: Not Enough Space on Drive ${DRIVE}"
+	echo "       USB Drive Has: ${DRIVESPACE} Free"
+	echo "      Required Space: ${NEEDSPACE} to Backup Files"
+	exit 0
+fi
+cd

@@ -1,0 +1,25 @@
+#!/bin/sh
+##
+## Formatting https://misc.flogisoft.com/bash/tip_colors_and_formatting
+## 
+if [ $# -lt 1 ]; then
+        echo "Usage: $0 {RPackage} {RPackage}"
+        exit 0
+fi
+cd /usr/local/lib/R/site-library/
+CWD=`pwd`
+Found=0
+for a in ${@}
+do
+    if [ -d "/usr/local/lib/R/site-library/$a" ]
+        then
+                echo "R Package: $a is installed."
+        else
+          if [ -d "/usr/lib/R/library/$a" ]
+            then
+                echo "R Package: $a is installed."
+            else
+                echo "R Package: \e[1m$a \e[0mis \e[31mNOT \e[39minstalled." 
+          fi
+        fi
+done

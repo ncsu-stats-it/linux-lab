@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ $# -lt 1 ]
+then
+        echo "$0 <dir>"
+        exit 0
+fi
+if [ -d  $1 ]; then
+	mkisofs -A NCSU -V NCSU_$1 -r -d -J -L -l -o /tmp/$1.iso  $1
+else
+	echo "ERROR: cannot find directory $1" 
+fi

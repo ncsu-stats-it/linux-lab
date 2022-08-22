@@ -1,0 +1,19 @@
+#!/bin/sh
+if [ $# -lt 1 ]
+then
+	echo "$0 <unityid>"
+	exit 0
+else
+	PASS=`hes $1 passwd`
+        if [ ! "$PASS" ]; then
+        	echo "ERROR: $1 not valid NCSU UNITYID."
+               exit 0
+        fi
+	UNITYID="(uid=$1)"
+	STUDENT=`ldapsearch -o nettimeout=10 -l 60 -z 100 -LLL -H ldap://ldap.ncsu.edu -b dc=ncsu,dc=edu -x '(&(objectclass=person)'$UNITYID')'`
+# 	echo "ldapsearch -o nettimeout=10 -l 60 -z 100 -LLL -H ldap://ldap.ncsu.edu -b dc=ncsu,dc=edu -x '(&(objectclass=person)(uid=$1))'"
+#	echo $UNITYID $STUDENT
+	if [ "$STUDENT" = "" ]; then
+		echo "Graduated"
+	fi
+fi

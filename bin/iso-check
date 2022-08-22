@@ -1,0 +1,7 @@
+#!/bin/sh
+echo "Checking CDROM"
+cd /mnt/cdrom && find . -type f | sort | sed -e 's/^/"/' -e 's/$/"/' | xargs cksum > /tmp/CDROM.sums
+echo "Checking ISO File"
+cd /mnt/iso && find . -type f | sort | sed -e 's/^/"/' -e 's/$/"/' | xargs cksum > /tmp/IMG.sums
+echo
+diff /tmp/CDROM.sums /tmp/IMG.sums | less

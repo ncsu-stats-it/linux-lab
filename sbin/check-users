@@ -1,0 +1,15 @@
+#!/bin/sh
+# Check if root
+if ! [ $(id -u) = 0 ]; then
+        echo "ERROR: You must be root"
+        exit 0
+fi
+cd /home
+for a in $DIRS
+do
+        echo -n " [ $a ] "
+       #INFO=`hesinfo $a GRPLIST | grep krb_disable`
+       #INFO=`hesinfo $a GRPLIST | grep graduate`
+       INFO=`/usr/local/bin/graduate_check $a`
+        echo $INFO
+done

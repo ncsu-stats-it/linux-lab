@@ -1,0 +1,243 @@
+#!/bin/bash --noprofile
+#
+# hes, hesgrpinfo, and hesinfo - written or rewritten in bash using LDAP
+# Copyright 2007 NC State University
+# Written by Jason Corley <jacorley@ncsu.edu>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+# even though we fully qualify binaries set a minimalist path just to be safe
+PATH=":/usr/local/bin:/usr/local/sbin:/bin:/usr/bin"
+
+declare -a uidArray
+
+DEBUG="false"
+EGREP="/bin/egrep"
+HESINFOTYPE="$(echo "$2" | /usr/bin/tr '[:upper:]' '[:lower:]')"
+INPUT="$1"
+LDAPBASE="dc=ncsu,dc=edu"
+LDAPSERVER="ldap.ncsu.edu"
+# array constants
+subscriptGecos="3" # gecos
+subscriptGID="5" # gidNumber
+subscriptHomeDirectory="7" # homeDirectory
+subscriptMailServer="11" # mailhost
+subscriptShell="9" # loginShell
+subscriptUID="15" # uidNumber
+subscriptUserName="13" # uid
+
+# this makes me nervous but is needed for deterministic sorting
+export LC_ALL="C"
+
+# special casing for different operating systems
+SYS=`uname`
+case "$SYS" in
+  # Red Hat Enterprise Linux 3, 4, and 5 x86/x86_64
+  Linux)
+    AWK="/bin/gawk"
+    DASHX="-x"
+    EXPR="/usr/bin/expr"
+    LDAPSEARCH="/usr/bin/ldapsearch"
+    SORT="/bin/sort"
+  ;;
+  # Mac OS X 10.4 with gawk via homebrew
+  Darwin)
+    AWK="/usr/local/bin/gawk"
+    DASHX="-x"
+    EXPR="/bin/expr"
+    LDAPSEARCH="/usr/bin/ldapsearch"
+    SORT="/usr/bin/sort"
+  ;;
+  *)
+    echo "unsupported system, exiting"
+    exit 1
+  ;;
+esac
+
+debug() {
+  local count="0"
+  while [ $count -le ${#uidArray[*]} ]; do
+    echo "uidArray[${count}] = ${uidArray[${count}]}"
+    let count="${count}+1"
+  done
+}
+
+filsys() {
+  if [ -z "$HESINFOTYPE" ]; then
+    echo -n "    FILSYS: "
+  fi
+  echo -n "AFS ${uidArray[${subscriptHomeDirectory}]# } w "
+  echo -n "/ncsu/${uidArray[${subscriptUserName}]# }"
+  echo
+}
+
+getinfo() {
+  local i=""
+  if $EXPR $INPUT : "[a-z]" >/dev/null 2>&1; then
+    export hesNumeric="false"
+    IFS=$':\n' uidArray=(
+      $(
+        $LDAPSEARCH -h $LDAPSERVER -S -Z -LLL $DASHX -b \
+          "ou=accounts,${LDAPBASE}" "(uid=${INPUT})" gecos gidNumber \
+          homeDirectory loginShell mailhost uid uidNumber | $SORT -u
+      )
+    )
+    groupList=$(
+      $LDAPSEARCH -h $LDAPSERVER -S -Z -LLL $DASHX -b $LDAPBASE \
+      "(uid=${INPUT})" memberNisNetgroup | $AWK '/ou=access/ {
+        $2=gensub("cn=","","g",gensub(/,ou=(.+)$/,"","g",$2))
+        print $2
+      }' | $SORT
+    )
+    for i in $groupList; do
+      groups=$(
+        $LDAPSEARCH -h $LDAPSERVER -S -Z -LLL $DASHX -s one -b \
+          "ou=access,ou=groups,${LDAPBASE}" "(cn=${i})" gidNumber | \
+          $AWK -v gid="$i" '/gidNumber/ { ORS=""; printf("%s:%d\n",gid,$2) }'
+      ):$groups
+    done
+    # remove trailing semicolon
+    groups="${groups%:}"
+  elif $EXPR $INPUT : "[0-9]" >/dev/null 2>&1; then
+    export hesNumeric="true"
+    IFS=$':\n' uidArray=(
+      $(
+        $LDAPSEARCH -h $LDAPSERVER -S -Z -LLL $DASHX -b \
+          "ou=accounts,${LDAPBASE}" "(uidNumber=${INPUT})" gecos gidNumber \
+          homeDirectory loginShell mailhost uid uidNumber | $SORT -u
+      )
+    )
+  fi
+}
+
+grplist() {
+  if [ -z "$HESINFOTYPE" ]; then
+    echo -n "    GRPLIST: "
+  fi
+  echo "$groups"
+}
+
+passwd() {
+  if [ "$hesNumeric" = "true" ]; then
+    echo -n "       UID: "
+  elif [ -z "$HESINFOTYPE" ]; then
+    echo -n "    PASSWD: "
+  fi
+  echo -n "${uidArray[${subscriptUserName}]# }:*:"
+  echo -n "${uidArray[${subscriptUID}]# }:"
+  echo -n "${uidArray[${subscriptGID}]# }:"
+  echo -n "${uidArray[${subscriptGecos}]# }:"
+  echo -n "/ncsu/${uidArray[${subscriptUserName}]# }:"
+  echo -n "${uidArray[${subscriptShell}]# }"
+  echo
+}
+
+pobox() {
+  if [ -z "$HESINFOTYPE" ]; then
+    echo -n "    POBOX: "
+  fi
+  echo -n "POP ${uidArray[${subscriptMailServer}]# } "
+  echo -n "${uidArray[${subscriptUserName}]# }"
+  echo
+}
+
+usage() {
+  case "$0" in
+    *hes)
+      echo "Usage: $0 <unityid|uid>"
+      ;;
+    *hesgrpinfo)
+      echo "Usage: $0 <groupname>"
+      ;;
+    *hesinfo)
+      echo "Usage: $0 <unityid> <filsys|grplist|passwd|pobox>"
+      ;;
+    *)
+      echo "Usage: hes <unityid>"
+      ;;
+  esac
+  exit
+}
+
+case "$0" in
+  *hes)
+    if [ -z "$INPUT" ]; then
+      usage
+    fi
+    getinfo
+    if [ "$DEBUG" = "true" ]; then
+        debug
+    fi
+    if [ "$hesNumeric" = "true" ]; then
+      if [ -z "${uidArray[${subscriptUserName}]}" ]; then
+        exit
+      fi
+      passwd
+    else
+      if [ -z "${uidArray[${subscriptUserName}]}" ]; then
+        exit
+      fi
+      if [ ! -z "$HESINFOTYPE" ]; then
+        if [ "$HESINFOTYPE" != "filsys" ] && \
+           [ "$HESINFOTYPE" != "grplist" ] && \
+           [ "$HESINFOTYPE" != "passwd" ] && \
+           [ "$HESINFOTYPE" != "pobox" ]; then
+          usage
+        fi
+          $HESINFOTYPE
+      else
+        passwd
+        filsys
+        pobox
+        grplist
+      fi
+    fi
+    ;;
+  *hesinfo)
+    if [ -z "$INPUT" ] || [ -z "$HESINFOTYPE" ]; then
+      usage
+    elif [ "$HESINFOTYPE" != "filsys" ] && \
+         [ "$HESINFOTYPE" != "grplist" ] && \
+         [ "$HESINFOTYPE" != "passwd" ] && \
+         [ "$HESINFOTYPE" != "pobox" ]; then
+      usage
+    fi
+    getinfo
+    if [ "$DEBUG" = "true" ]; then
+      debug
+    fi
+    if [ -z "${uidArray[${subscriptUserName}]}" ]; then
+      exit
+    fi
+    $HESINFOTYPE
+    ;;
+  *hesgrpinfo)
+    if [ -z "$INPUT" ]; then
+      usage
+    else
+      $LDAPSEARCH -h $LDAPSERVER -S -Z -LLL $DASHX -b \
+        "ou=accounts,${LDAPBASE}" \
+        "(memberNisNetgroup=cn=${INPUT},ou=access,ou=groups,${LDAPBASE})" uid \
+      | $AWK '/^uid/ { print $2 }' | $SORT
+    fi
+    ;;
+  *)
+    usage
+    ;;
+esac
+
+unset groups groupList hesNumeric uidArray
+unset AWK DASHX DEBUG EGREP EXPR HESINFOTYPE INPUT
+unset LC_ALL LDAPBASE LDAPSEARCH LDAPSERVER SORT SYS
+

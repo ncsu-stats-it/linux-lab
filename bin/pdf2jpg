@@ -1,0 +1,16 @@
+#!/bin/sh
+if [ $# -lt 1 ]
+then
+        echo "Usage: $0 <filename.pdf> <filename.jpg>"
+        exit 0
+fi
+if [ $# = 1 ]
+then
+       sname=`echo $1 | cut -d. -f1`
+       outname="$sname.jpg"
+fi
+if [ $# = 2 ]
+then
+   outname=$2
+fi
+convert -density 300 -quality 10 $1 $outname

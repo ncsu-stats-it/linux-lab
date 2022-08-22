@@ -1,0 +1,14 @@
+#!/bin/sh
+
+## Will cdrecord ISO image
+## User must pass [name] for /tmp/[name].img
+
+if [ $# -lt 1 ]; then
+        echo "Usage: $0 <File.iso>"
+        exit 0
+fi
+if [ -r $1 ]; then
+#	cdrecord -eject -v speed=4 dev=/dev/scd0 -data $1
+	cdrecord -eject -v speed=4 dev=0,0,0 -data $1
+	echo DONE..........
+fi
