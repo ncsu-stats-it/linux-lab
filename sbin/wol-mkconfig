@@ -1,24 +1,54 @@
 #!/bin/bash
-if [ -f "wol_config.ini" ]; then
-	DATE=`date "+%Y-%d-%m"`
-	mv wol_config.ini wol_config-$DATE.ini
-fi
-FILTER="jo5214"
-IP=`hostname -I | cut -f1 -d' '`
-BCAST=`ip address show | grep 10.68.41.50 | awk '{print $4}'`
-HOSTS=`arp -a | grep $FILTER| grep -v incomplete | sort -d | awk '{print $1}'`
-OUTFILE="wol_config.ini"
-echo "[General]" >> $OUTFILE
-echo "broadcast=$BCAST" >> $OUTFILE
-echo " " >> $OUTFILE
-for a in $HOSTS; do
-   echo "[ $a ]" >> $OUTFILE
-   HMAC=`arp -a | grep $a | awk '{print $4}'`
-   echo "mac=$HMAC" >> $OUTFILE
-   echo " " >> $OUTFILE
-done
-SHORHOST=`hostname | cut -f1 -d.` 
-echo "[$SHORHOST]" >> $OUTFILE
-LMAC=`ip address | grep link | grep ether | head -1 | awk '{print $2}'`
-echo "mac=$LMAC" >> $OUTFILE
-echo " " >> $OUTFILE
+FILTER="5284"
+OS=`uname`
+case $OS in
+	Darwin)
+           if [ -f "wol_config.ini" ]; then
+	      DATE=`date "+%Y-%d-%m"`
+	      mv wol_config.ini wol_config-$DATE.ini
+           fi
+	   IP=`ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2}'`
+	   BCAST=`ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $6}'`
+           HOSTS=`arp -a | grep $FILTER| grep -v incomplete | sort -d | awk '{print $1}'`
+           OUTFILE="wol_config.ini"
+	   echo "[General]" >> $OUTFILE
+           echo "broadcast=$BCAST" >> $OUTFILE
+           echo " " >> $OUTFILE
+           for a in $HOSTS; do
+               echo "[ $a ]" >> $OUTFILE
+               HMAC=`arp -a | grep $a | awk '{print $4}'`
+               echo "mac=$HMAC" >> $OUTFILE
+               echo " " >> $OUTFILE
+           done
+           SHORHOST=`host $IP | awk '{print $5}'| sed -r 's/\.$//'` 
+           echo "[ $SHORHOST ]" >> $OUTFILE
+	   ACTIVENIC=`networksetup -listnetworkserviceorder | grep LAN | tail -1| awk '{print $7}' | cut -f1 -d\)`
+           LMAC=`networksetup -getmacaddress $ACTIVENIC | awk '{print $3}'`
+           echo "mac=$LMAC" >> $OUTFILE
+           echo " " >> $OUTFILE
+	;;
+	Linux )
+           if [ -f "wol_config.ini" ]; then
+	      DATE=`date "+%Y-%d-%m"`
+	      mv wol_config.ini wol_config-$DATE.ini
+           fi
+           IP=`hostname -I | cut -f1 -d' '`
+           BCAST=`ip address show | grep $IP | awk '{print $4}'`
+           HOSTS=`arp -a | grep $FILTER| grep -v incomplete | sort -d | awk '{print $1}'`
+           OUTFILE="wol_config.ini"
+           echo "[General]" >> $OUTFILE
+           echo "broadcast=$BCAST" >> $OUTFILE
+           echo " " >> $OUTFILE
+           for a in $HOSTS; do
+               echo "[ $a ]" >> $OUTFILE
+               HMAC=`arp -a | grep $a | awk '{print $4}'`
+               echo "mac=$HMAC" >> $OUTFILE
+               echo " " >> $OUTFILE
+           done
+	   SHORHOST=`hostname | cut -f1 -d.`
+           echo "[$SHORHOST]" >> $OUTFILE
+           LMAC=`ip address | grep link | grep ether | head -1 | awk '{print $2}'`
+           echo "mac=$LMAC" >> $OUTFILE
+           echo " " >> $OUTFILE
+	;;
+esac
