@@ -20,12 +20,13 @@ case $OS in
                echo "mac=$HMAC" >> $OUTFILE
                echo " " >> $OUTFILE
            done
-           SHORHOST=`host $IP | awk '{print $5}'| sed -r 's/\.$//'` 
-           echo "[ $SHORHOST ]" >> $OUTFILE
-	   ACTIVENIC=`networksetup -listnetworkserviceorder | grep LAN | tail -1| awk '{print $7}' | cut -f1 -d\)`
-           LMAC=`networksetup -getmacaddress $ACTIVENIC | awk '{print $3}'`
-           echo "mac=$LMAC" >> $OUTFILE
-           echo " " >> $OUTFILE
+	   ### Not Needed Macs don't WOL
+           # SHORHOST=`host $IP | awk '{print $5}'| sed -r 's/\.$//'` 
+           # echo "[ $SHORHOST ]" >> $OUTFILE
+	   # ACTIVENIC=`networksetup -listnetworkserviceorder | grep LAN | tail -1| awk '{print $7}' | cut -f1 -d\)`
+           # LMAC=`networksetup -getmacaddress $ACTIVENIC | awk '{print $3}'`
+           # echo "mac=$LMAC" >> $OUTFILE
+           # echo " " >> $OUTFILE
 	;;
 	Linux )
            if [ -f "wol_config.ini" ]; then
